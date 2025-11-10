@@ -1,18 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { PuzzleGrid, PlacedWord, Direction } from '../../types/puzzle.types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { PuzzleGrid, PlacedWord } from '../../types/puzzle.types';
 import CrosswordCell from './CrosswordCell';
 
 interface CrosswordGridProps {
   puzzle: PuzzleGrid;
   userGrid: string[][];
   onCellChange: (row: number, col: number, value: string) => void;
-  onWordSelect: (word: PlacedWord) => void;
+  onWordSelect: (word: PlacedWord | null) => void;
 }
 
 export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSelect }: CrosswordGridProps) {
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
-  const [direction, setDirection] = useState<Direction>('across');
+  const [selectedWord, setSelectedWord] = useState<PlacedWord | null>(null);
   const [highlightedCells, setHighlightedCells] = useState<Set<string>>(new Set());
+  const [cellSize, setCellSize] = useState(40);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Calculate cell size based on container width
+  useEffect(() => {
+    const calculateCellSize = () => {
+      if (!containerRef.current) return;
+
+      const containerWidth = containerRef.current.clientWidth;
+      const maxDimension = Math.max(puzzle.dimensions.rows, puzzle.dimensions.cols);
+
+      // Calculate cell size to fill container (minus padding and borders)
+      const padding = 16; // 8px padding on each side
+      const borderWidth = 4; // 2px border on each side
+      const availableWidth = containerWidth - padding - borderWidth;
+      const calculatedCellSize = Math.floor(availableWidth / maxDimension);
+
+      setCellSize(Math.max(30, Math.min(calculatedCellSize, 80))); // Min 30px, max 80px
+    };
+
+    calculateCellSize();
+    window.addEventListener('resize', calculateCellSize);
+    return () => window.removeEventListener('resize', calculateCellSize);
+  }, [puzzle.dimensions]);
 
   // Find all words that contain a specific cell
   const findWordsAtCell = useCallback((row: number, col: number) => {
@@ -25,65 +49,69 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
     });
   }, [puzzle.words]);
 
-  // Find word in current direction at cell
-  const findCurrentWord = useCallback((row: number, col: number, dir: Direction) => {
-    return puzzle.words.find((word) => {
-      if (word.direction !== dir) return false;
+  // Check if cell is the starting cell of a word
+  const isStartingCell = useCallback((row: number, col: number, word: PlacedWord) => {
+    return word.startRow === row && word.startCol === col;
+  }, []);
 
-      if (dir === 'across') {
-        return row === word.startRow && col >= word.startCol && col < word.startCol + word.word.length;
-      } else {
-        return col === word.startCol && row >= word.startRow && row < word.startRow + word.word.length;
-      }
-    });
-  }, [puzzle.words]);
-
-  // Update highlighted cells when selection changes
+  // Update highlighted cells when word selection changes
   useEffect(() => {
-    if (!selectedCell) {
+    if (!selectedWord) {
       setHighlightedCells(new Set());
-      return;
-    }
-
-    const currentWord = findCurrentWord(selectedCell.row, selectedCell.col, direction);
-    if (!currentWord) {
-      setHighlightedCells(new Set());
+      onWordSelect(null);
       return;
     }
 
     const cells = new Set<string>();
-    if (direction === 'across') {
-      for (let c = currentWord.startCol; c < currentWord.startCol + currentWord.word.length; c++) {
-        cells.add(`${currentWord.startRow},${c}`);
+    if (selectedWord.direction === 'across') {
+      for (let c = selectedWord.startCol; c < selectedWord.startCol + selectedWord.word.length; c++) {
+        cells.add(`${selectedWord.startRow},${c}`);
       }
     } else {
-      for (let r = currentWord.startRow; r < currentWord.startRow + currentWord.word.length; r++) {
-        cells.add(`${r},${currentWord.startCol}`);
+      for (let r = selectedWord.startRow; r < selectedWord.startRow + selectedWord.word.length; r++) {
+        cells.add(`${r},${selectedWord.startCol}`);
       }
     }
     setHighlightedCells(cells);
-
-    // Notify parent of word selection
-    onWordSelect(currentWord);
-  }, [selectedCell, direction, findCurrentWord, onWordSelect]);
+    onWordSelect(selectedWord);
+  }, [selectedWord, onWordSelect]);
 
   const handleCellFocus = (row: number, col: number) => {
-    // If clicking on already selected cell, toggle direction
-    if (selectedCell && selectedCell.row === row && selectedCell.col === col) {
-      const words = findWordsAtCell(row, col);
-      if (words.length > 1) {
-        setDirection(direction === 'across' ? 'down' : 'across');
+    const wordsAtCell = findWordsAtCell(row, col);
+
+    if (wordsAtCell.length === 0) return;
+
+    // If clicking on already selected cell of a word with multiple directions, toggle direction
+    if (selectedCell && selectedCell.row === row && selectedCell.col === col && wordsAtCell.length > 1) {
+      // Toggle to the other word at this position
+      const otherWord = wordsAtCell.find(w => w.id !== selectedWord?.id);
+      if (otherWord) {
+        setSelectedWord(otherWord);
+        setSelectedCell({ row, col });
       }
-    } else {
+      return;
+    }
+
+    // Check if this is a starting cell
+    const startingWords = wordsAtCell.filter(w => isStartingCell(row, col, w));
+
+    if (startingWords.length > 0) {
+      // If multiple words start here, prefer the first one (or toggle if clicking same cell)
+      setSelectedWord(startingWords[0]);
       setSelectedCell({ row, col });
+    } else if (wordsAtCell.length === 1) {
+      // Only one word passes through this cell, select it
+      setSelectedWord(wordsAtCell[0]);
+      setSelectedCell({ row, col });
+    } else {
+      // Multiple words, but not a starting cell - just select the cell without a word
+      setSelectedCell({ row, col });
+      setSelectedWord(null);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, row: number, col: number) => {
-    const currentWord = findCurrentWord(row, col, direction);
-    if (!currentWord) return;
-
-    // Navigation
+    // Arrow key navigation
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
       let newRow = row;
@@ -96,48 +124,84 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
 
       // Check if new position is valid (not black cell)
       if (newRow >= 0 && newRow < puzzle.dimensions.rows && newCol >= 0 && newCol < puzzle.dimensions.cols) {
-        const isBlack = puzzle.grid[newRow][newCol] === '' && !findWordsAtCell(newRow, newCol).length;
-        if (!isBlack) {
+        const wordsAtNewCell = findWordsAtCell(newRow, newCol);
+        if (wordsAtNewCell.length > 0) {
           setSelectedCell({ row: newRow, col: newCol });
+
+          // If we have a selected word and the new cell is part of it, keep the word selected
+          if (selectedWord && wordsAtNewCell.some(w => w.id === selectedWord.id)) {
+            // Keep current word selected
+          } else if (wordsAtNewCell.length === 1) {
+            setSelectedWord(wordsAtNewCell[0]);
+          } else {
+            // Multiple words at new cell, don't auto-select
+            setSelectedWord(null);
+          }
         }
       }
+      return;
     }
 
     // Tab: Move to next word
     if (e.key === 'Tab') {
       e.preventDefault();
-      const currentWordIndex = puzzle.words.indexOf(currentWord);
-      const nextWord = puzzle.words[(currentWordIndex + 1) % puzzle.words.length];
-      setSelectedCell({ row: nextWord.startRow, col: nextWord.startCol });
-      setDirection(nextWord.direction);
+      if (selectedWord) {
+        const currentWordIndex = puzzle.words.indexOf(selectedWord);
+        const nextWord = puzzle.words[(currentWordIndex + 1) % puzzle.words.length];
+        setSelectedWord(nextWord);
+        setSelectedCell({ row: nextWord.startRow, col: nextWord.startCol });
+      }
+      return;
     }
 
-    // Backspace: Clear and move back
+    // Backspace: Clear and move back within current word
     if (e.key === 'Backspace') {
       e.preventDefault();
       onCellChange(row, col, '');
 
-      // Move to previous cell in current word
-      if (direction === 'across' && col > currentWord.startCol) {
-        setSelectedCell({ row, col: col - 1 });
-      } else if (direction === 'down' && row > currentWord.startRow) {
-        setSelectedCell({ row: row - 1, col });
+      if (selectedWord) {
+        // Move to previous cell within the current word
+        if (selectedWord.direction === 'across' && col > selectedWord.startCol) {
+          setSelectedCell({ row, col: col - 1 });
+        } else if (selectedWord.direction === 'down' && row > selectedWord.startRow) {
+          setSelectedCell({ row: row - 1, col });
+        }
       }
+      return;
     }
   };
 
   const handleCellChange = (row: number, col: number, value: string) => {
     onCellChange(row, col, value);
 
-    // Auto-advance to next cell
-    if (value && selectedCell) {
-      const currentWord = findCurrentWord(row, col, direction);
-      if (!currentWord) return;
+    // Only auto-advance if we have a selected word and typed a value
+    if (value && selectedWord) {
+      const { direction, startRow, startCol, word } = selectedWord;
 
-      if (direction === 'across' && col < currentWord.startCol + currentWord.word.length - 1) {
-        setSelectedCell({ row, col: col + 1 });
-      } else if (direction === 'down' && row < currentWord.startRow + currentWord.word.length - 1) {
-        setSelectedCell({ row: row + 1, col });
+      // Calculate next position within the current word
+      let nextRow = row;
+      let nextCol = col;
+
+      if (direction === 'across') {
+        nextCol = col + 1;
+        // Check if next cell is still within the current word
+        if (nextCol < startCol + word.length) {
+          setSelectedCell({ row: nextRow, col: nextCol });
+        } else {
+          // Word is complete, deselect everything
+          setSelectedCell(null);
+          setSelectedWord(null);
+        }
+      } else {
+        nextRow = row + 1;
+        // Check if next cell is still within the current word
+        if (nextRow < startRow + word.length) {
+          setSelectedCell({ row: nextRow, col: nextCol });
+        } else {
+          // Word is complete, deselect everything
+          setSelectedCell(null);
+          setSelectedWord(null);
+        }
       }
     }
   };
@@ -149,34 +213,37 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
   };
 
   return (
-    <div className="inline-block bg-gray-100 p-2">
-      <div className="inline-block border-2 border-gray-900">
-        {puzzle.grid.map((rowCells, rowIndex) => (
-          <div key={rowIndex} className="flex">
-            {rowCells.map((_, colIndex) => {
-              const isBlack = !findWordsAtCell(rowIndex, colIndex).length;
-              const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
-              const isHighlighted = highlightedCells.has(`${rowIndex},${colIndex}`);
-              const number = getCellNumber(rowIndex, colIndex);
+    <div ref={containerRef} className="w-full">
+      <div className="inline-block bg-gray-100 p-2">
+        <div className="inline-block border-2 border-gray-900">
+          {puzzle.grid.map((rowCells, rowIndex) => (
+            <div key={rowIndex} className="flex">
+              {rowCells.map((_, colIndex) => {
+                const isBlack = !findWordsAtCell(rowIndex, colIndex).length;
+                const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
+                const isHighlighted = highlightedCells.has(`${rowIndex},${colIndex}`);
+                const number = getCellNumber(rowIndex, colIndex);
 
-              return (
-                <CrosswordCell
-                  key={`${rowIndex}-${colIndex}`}
-                  row={rowIndex}
-                  col={colIndex}
-                  value={userGrid[rowIndex][colIndex]}
-                  number={number}
-                  isBlack={isBlack}
-                  isSelected={isSelected}
-                  isHighlighted={isHighlighted}
-                  onChange={handleCellChange}
-                  onFocus={handleCellFocus}
-                  onKeyDown={handleKeyDown}
-                />
-              );
-            })}
-          </div>
-        ))}
+                return (
+                  <CrosswordCell
+                    key={`${rowIndex}-${colIndex}`}
+                    row={rowIndex}
+                    col={colIndex}
+                    value={userGrid[rowIndex][colIndex]}
+                    number={number}
+                    isBlack={isBlack}
+                    isSelected={isSelected}
+                    isHighlighted={isHighlighted}
+                    cellSize={cellSize}
+                    onChange={handleCellChange}
+                    onFocus={handleCellFocus}
+                    onKeyDown={handleKeyDown}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
