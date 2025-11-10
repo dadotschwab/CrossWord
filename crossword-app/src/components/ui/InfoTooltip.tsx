@@ -37,9 +37,11 @@ export default function InfoTooltip({ content }: InfoTooltipProps) {
           style={{ width: 'calc(50vw - 2rem)' }}
           side="bottom"
           align="start"
-          sideOffset={8}
-          alignOffset={-24}
+          sideOffset={12}
+          alignOffset={-80}
           avoidCollisions={false}
+          collisionPadding={0}
+          sticky="always"
         >
           <div className="relative">
             <Popover.Close asChild>
