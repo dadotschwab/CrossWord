@@ -31,42 +31,40 @@ export default function InfoTooltip({ content }: InfoTooltipProps) {
           </svg>
         </button>
       </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-96 z-50 animate-scale-in"
-          side="bottom"
-          align="start"
-          sideOffset={12}
-          alignOffset={-80}
-          avoidCollisions={false}
-          collisionPadding={0}
-          sticky="always"
-        >
-          <div className="relative">
-            <Popover.Close asChild>
-              <button
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800"
-                aria-label="Close"
+      <Popover.Content
+        className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-96 z-50 animate-scale-in"
+        side="bottom"
+        align="start"
+        sideOffset={12}
+        alignOffset={-80}
+        avoidCollisions={false}
+        collisionPadding={0}
+        sticky="always"
+      >
+        <div className="relative">
+          <Popover.Close asChild>
+            <button
+              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800"
+              aria-label="Close"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </Popover.Close>
-            {content}
-          </div>
-        </Popover.Content>
-      </Popover.Portal>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </Popover.Close>
+          {content}
+        </div>
+      </Popover.Content>
     </Popover.Root>
   );
 }
