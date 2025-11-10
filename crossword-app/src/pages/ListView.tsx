@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import type { List, Word } from '../types/database.types';
 import { getList, getWords, createWord, updateWord, deleteWord } from '../services/mock-data.service';
 import { Button, Card, DropdownMenu } from '../components/ui';
@@ -10,6 +10,7 @@ import { MIN_WORDS_FOR_PUZZLE } from '../utils/constants';
 export default function ListView() {
   const { listId } = useParams<{ listId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [list, setList] = useState<List | null>(null);
   const [words, setWords] = useState<Word[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -26,6 +27,16 @@ export default function ListView() {
       }
     }
   }, [listId, navigate]);
+
+  // Check for ?add=true parameter to auto-open add modal
+  useEffect(() => {
+    if (searchParams.get('add') === 'true') {
+      setIsAddModalOpen(true);
+      // Remove the parameter from URL
+      searchParams.delete('add');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const loadWords = () => {
     if (listId) {

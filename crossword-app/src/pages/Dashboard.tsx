@@ -97,6 +97,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {lists.map((list) => {
               const wordCount = getWordCount(list.id);
+              const canStartPuzzle = wordCount >= 5; // MIN_WORDS_FOR_PUZZLE
               return (
                 <Card
                   key={list.id}
@@ -114,23 +115,52 @@ export default function Dashboard() {
                       {list.source_language.toUpperCase()}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">
-                      {wordCount} word{wordCount !== 1 ? 's' : ''}
-                    </span>
-                    <DropdownMenu
-                      items={[
-                        {
-                          label: 'Edit',
-                          onClick: () => setEditingList(list),
-                        },
-                        {
-                          label: 'Delete',
-                          onClick: () => handleDeleteList(list.id),
-                          variant: 'danger',
-                        },
-                      ]}
-                    />
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        {wordCount} word{wordCount !== 1 ? 's' : ''}
+                      </span>
+                      <DropdownMenu
+                        items={[
+                          {
+                            label: 'Edit',
+                            onClick: () => setEditingList(list),
+                          },
+                          {
+                            label: 'Delete',
+                            onClick: () => handleDeleteList(list.id),
+                            variant: 'danger',
+                          },
+                        ]}
+                      />
+                    </div>
+
+                    {/* Quick action buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/lists/${list.id}?add=true`);
+                        }}
+                      >
+                        + Add Word
+                      </Button>
+                      <Button
+                        variant={canStartPuzzle ? 'primary' : 'secondary'}
+                        size="sm"
+                        className="flex-1"
+                        disabled={!canStartPuzzle}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/puzzle/${list.id}`);
+                        }}
+                      >
+                        {canStartPuzzle ? 'Start Puzzle' : `Need ${5 - wordCount} more`}
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               );
