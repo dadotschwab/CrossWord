@@ -24,7 +24,8 @@ export default function CluesList({ words, selectedWord, onClueClick }: CluesLis
   );
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-2 gap-6">
+      {/* Across Column */}
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-3">Across</h3>
         <div className="space-y-1">
@@ -34,6 +35,7 @@ export default function CluesList({ words, selectedWord, onClueClick }: CluesLis
         </div>
       </div>
 
+      {/* Down Column */}
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-3">Down</h3>
         <div className="space-y-1">

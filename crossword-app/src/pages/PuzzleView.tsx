@@ -198,10 +198,10 @@ export default function PuzzleView() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Crossword Grid - 2/3 width */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Crossword Grid - 50% width */}
+          <div className="flex flex-col items-center justify-start">
+            <div className="bg-white rounded-lg shadow-md p-6 w-full">
               <CrosswordGrid
                 puzzle={puzzle}
                 userGrid={userGrid}
@@ -211,8 +211,8 @@ export default function PuzzleView() {
             </div>
           </div>
 
-          {/* Clues and Controls - 1/3 width */}
-          <div className="space-y-6">
+          {/* Clues and Controls - 50% width */}
+          <div className="space-y-4">
             <PuzzleControls
               hintsUsed={hintsUsed}
               maxHints={MAX_HINTS_PER_PUZZLE}
@@ -222,7 +222,7 @@ export default function PuzzleView() {
               onComplete={handleCompletePuzzle}
             />
 
-            <div className="bg-white rounded-lg shadow-md p-6 max-h-[600px] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-md p-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Clues</h2>
               <CluesList
                 words={puzzle.words}
