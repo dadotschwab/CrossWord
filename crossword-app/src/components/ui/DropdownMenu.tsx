@@ -76,7 +76,7 @@ export default function DropdownMenu({ items }: DropdownMenuProps) {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[150px]"
+          className="absolute left-full top-0 ml-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[150px]"
           role="menu"
         >
           {items.map((item, index) => (
