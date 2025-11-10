@@ -33,7 +33,7 @@ export default function InfoTooltip({ content }: InfoTooltipProps) {
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
-          className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-80 z-50 animate-scale-in"
+          className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-96 z-50 animate-scale-in"
           sideOffset={5}
         >
           <div className="relative">

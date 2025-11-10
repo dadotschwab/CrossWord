@@ -154,10 +154,20 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
     if (e.key === 'Tab') {
       e.preventDefault();
       if (selectedWord) {
+        // Move to next word from current word
         const currentWordIndex = puzzle.words.indexOf(selectedWord);
         const nextWord = puzzle.words[(currentWordIndex + 1) % puzzle.words.length];
         setSelectedWord(nextWord);
         setSelectedCell({ row: nextWord.startRow, col: nextWord.startCol });
+      } else if (selectedCell) {
+        // No word selected but cell is selected - find a word at this cell and move to next
+        const wordsAtCell = findWordsAtCell(selectedCell.row, selectedCell.col);
+        if (wordsAtCell.length > 0) {
+          const currentWordIndex = puzzle.words.indexOf(wordsAtCell[0]);
+          const nextWord = puzzle.words[(currentWordIndex + 1) % puzzle.words.length];
+          setSelectedWord(nextWord);
+          setSelectedCell({ row: nextWord.startRow, col: nextWord.startCol });
+        }
       }
       return;
     }
@@ -196,8 +206,9 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
         if (nextCol < startCol + word.length) {
           setSelectedCell({ row: nextRow, col: nextCol });
         } else {
-          // Word is complete, deselect everything
-          setSelectedCell(null);
+          // Word is complete - keep current cell selected but clear word
+          // This allows Tab and arrow navigation to continue working
+          setSelectedCell({ row, col });
           setSelectedWord(null);
         }
       } else {
@@ -206,8 +217,9 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
         if (nextRow < startRow + word.length) {
           setSelectedCell({ row: nextRow, col: nextCol });
         } else {
-          // Word is complete, deselect everything
-          setSelectedCell(null);
+          // Word is complete - keep current cell selected but clear word
+          // This allows Tab and arrow navigation to continue working
+          setSelectedCell({ row, col });
           setSelectedWord(null);
         }
       }

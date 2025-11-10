@@ -59,7 +59,10 @@ export default function CrosswordCell({
         maxLength={1}
         value={value || ''}
         onChange={(e) => onChange(row, col, e.target.value.toUpperCase())}
-        onFocus={() => onFocus(row, col)}
+        onFocus={(e) => {
+          e.target.select(); // Select all text when focused so typing replaces it
+          onFocus(row, col);
+        }}
         onKeyDown={(e) => onKeyDown(e, row, col)}
         style={{ fontSize: `${fontSize}px` }}
         className={`
