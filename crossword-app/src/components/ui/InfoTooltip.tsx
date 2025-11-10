@@ -34,7 +34,10 @@ export default function InfoTooltip({ content }: InfoTooltipProps) {
       <Popover.Portal>
         <Popover.Content
           className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-96 z-50 animate-scale-in"
-          sideOffset={5}
+          side="bottom"
+          align="start"
+          sideOffset={8}
+          alignOffset={-8}
         >
           <div className="relative">
             <Popover.Close asChild>
@@ -59,7 +62,6 @@ export default function InfoTooltip({ content }: InfoTooltipProps) {
             </Popover.Close>
             {content}
           </div>
-          <Popover.Arrow className="fill-white" />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
