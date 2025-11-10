@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import type { List } from '../types/database.types';
-import { getLists, createList, deleteList, getWordCount } from '../services/mock-data.service';
-import { Button, Card } from '../components/ui';
+import { getLists, createList, updateList, deleteList, getWordCount } from '../services/mock-data.service';
+import { Button, Card, DropdownMenu } from '../components/ui';
 import CreateListModal from '../components/dashboard/CreateListModal';
+import EditListModal from '../components/dashboard/EditListModal';
 import TrialBanner from '../components/dashboard/TrialBanner';
 
 export default function Dashboard() {
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [lists, setLists] = useState<List[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingList, setEditingList] = useState<List | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -32,6 +34,12 @@ export default function Dashboard() {
       loadLists();
       setIsCreateModalOpen(false);
     }
+  };
+
+  const handleEditList = (listId: string, name: string, targetLanguage: string, sourceLanguage: string) => {
+    updateList(listId, { name, target_language: targetLanguage, source_language: sourceLanguage });
+    loadLists();
+    setEditingList(null);
   };
 
   const handleDeleteList = (listId: string) => {
@@ -110,16 +118,19 @@ export default function Dashboard() {
                     <span className="text-sm text-gray-600">
                       {wordCount} word{wordCount !== 1 ? 's' : ''}
                     </span>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteList(list.id);
-                      }}
-                    >
-                      Delete
-                    </Button>
+                    <DropdownMenu
+                      items={[
+                        {
+                          label: 'Edit',
+                          onClick: () => setEditingList(list),
+                        },
+                        {
+                          label: 'Delete',
+                          onClick: () => handleDeleteList(list.id),
+                          variant: 'danger',
+                        },
+                      ]}
+                    />
                   </div>
                 </Card>
               );
@@ -134,6 +145,18 @@ export default function Dashboard() {
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateList}
       />
+
+      {/* Edit List Modal */}
+      {editingList && (
+        <EditListModal
+          open={true}
+          onClose={() => setEditingList(null)}
+          onEdit={(name, targetLanguage, sourceLanguage) =>
+            handleEditList(editingList.id, name, targetLanguage, sourceLanguage)
+          }
+          list={editingList}
+        />
+      )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { List, Word } from '../types/database.types';
-import { getList, getWords, createWord, deleteWord } from '../services/mock-data.service';
-import { Button, Card } from '../components/ui';
+import { getList, getWords, createWord, updateWord, deleteWord } from '../services/mock-data.service';
+import { Button, Card, DropdownMenu } from '../components/ui';
 import AddWordModal from '../components/lists/AddWordModal';
+import EditWordModal from '../components/lists/EditWordModal';
 import { MIN_WORDS_FOR_PUZZLE } from '../utils/constants';
 
 export default function ListView() {
@@ -12,6 +13,7 @@ export default function ListView() {
   const [list, setList] = useState<List | null>(null);
   const [words, setWords] = useState<Word[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingWord, setEditingWord] = useState<Word | null>(null);
 
   useEffect(() => {
     if (listId) {
@@ -38,6 +40,12 @@ export default function ListView() {
       loadWords();
       setIsAddModalOpen(false);
     }
+  };
+
+  const handleEditWord = (wordId: string, word: string, definition: string) => {
+    updateWord(wordId, { word, definition });
+    loadWords();
+    setEditingWord(null);
   };
 
   const handleDeleteWord = (wordId: string) => {
@@ -125,13 +133,21 @@ export default function ListView() {
                       <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
                       <td className="py-3 px-4 text-gray-700">{word.definition}</td>
                       <td className="py-3 px-4 text-right">
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => handleDeleteWord(word.id)}
-                        >
-                          Delete
-                        </Button>
+                        <div className="flex justify-end">
+                          <DropdownMenu
+                            items={[
+                              {
+                                label: 'Edit',
+                                onClick: () => setEditingWord(word),
+                              },
+                              {
+                                label: 'Delete',
+                                onClick: () => handleDeleteWord(word.id),
+                                variant: 'danger',
+                              },
+                            ]}
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -148,6 +164,16 @@ export default function ListView() {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddWord}
       />
+
+      {/* Edit Word Modal */}
+      {editingWord && (
+        <EditWordModal
+          open={true}
+          onClose={() => setEditingWord(null)}
+          onEdit={(word, definition) => handleEditWord(editingWord.id, word, definition)}
+          word={editingWord}
+        />
+      )}
     </div>
   );
 }
