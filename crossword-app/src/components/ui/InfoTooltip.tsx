@@ -1,10 +1,11 @@
 interface InfoTooltipProps {
-  content: React.ReactNode;
+  onClick: () => void;
 }
 
-export default function InfoTooltip({ _content }: InfoTooltipProps) {
+export default function InfoTooltip({ onClick }: InfoTooltipProps) {
   return (
     <button
+      onClick={onClick}
       className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 hover:text-gray-800 transition-colors ml-2"
       aria-label="Information"
     >

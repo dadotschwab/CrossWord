@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import type { List, Word } from '../types/database.types';
 import type { PuzzleGrid, PlacedWord, WordInput } from '../types/puzzle.types';
@@ -21,6 +21,36 @@ export default function PuzzleView() {
   const [startTime] = useState(Date.now());
   const [_errorCells, setErrorCells] = useState<Set<string>>(new Set());
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const infoOverlayRef = useRef<HTMLDivElement>(null);
+
+  // Close info panel on click outside
+  useEffect(() => {
+    if (!isInfoOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (infoOverlayRef.current && !infoOverlayRef.current.contains(event.target as Node)) {
+        setIsInfoOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isInfoOpen]);
+
+  // Close info panel on Escape key
+  useEffect(() => {
+    if (!isInfoOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsInfoOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isInfoOpen]);
 
   useEffect(() => {
     if (listId) {
@@ -212,7 +242,7 @@ export default function PuzzleView() {
           </div>
 
           {/* Clues and Controls - 50% width */}
-          <div className="space-y-4">
+          <div className="relative space-y-4">
             <PuzzleControls
               hintsUsed={hintsUsed}
               maxHints={MAX_HINTS_PER_PUZZLE}
@@ -220,6 +250,7 @@ export default function PuzzleView() {
               onRevealHint={handleRevealHint}
               canComplete={isGridComplete}
               onComplete={handleCompletePuzzle}
+              onInfoClick={() => setIsInfoOpen(true)}
             />
 
             <div className="bg-white rounded-lg shadow-md p-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
@@ -229,6 +260,73 @@ export default function PuzzleView() {
                 selectedWord={selectedWord}
                 onClueClick={handleClueClick}
               />
+            </div>
+
+            {/* Info Overlay */}
+            <div
+              ref={infoOverlayRef}
+              className={`absolute inset-0 bg-white rounded-lg shadow-md p-6 overflow-y-auto transition-all duration-200 ${
+                isInfoOpen ? 'z-10 opacity-100' : '-z-10 opacity-0 pointer-events-none'
+              }`}
+              style={{ maxHeight: 'calc(100vh - 200px)' }}
+            >
+              <div className="relative">
+                <button
+                  onClick={() => setIsInfoOpen(false)}
+                  className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+                  aria-label="Close"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+
+                <div className="text-sm">
+                  <p className="font-semibold text-gray-900 mb-3 text-lg">How to Use:</p>
+
+                  <div className="space-y-3">
+                    <div>
+                      <p className="font-medium text-gray-900 mb-1">Controls:</p>
+                      <ul className="list-disc list-inside space-y-1 text-gray-700 ml-2">
+                        <li><strong>Check Solution</strong>: Validates your answers and shows errors</li>
+                        <li><strong>Reveal Letter</strong>: Shows one letter in the selected word (3 max)</li>
+                        <li><strong>Complete Puzzle</strong>: Finish when all words are correct</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="font-medium text-gray-900 mb-1">Navigation:</p>
+                      <ul className="list-disc list-inside space-y-1 text-gray-700 ml-2">
+                        <li>Click a starting cell to begin typing a word</li>
+                        <li>Type letters to fill cells automatically</li>
+                        <li>Use <strong>arrow keys</strong> to navigate cells</li>
+                        <li>Press <strong>Tab</strong> to jump to next word</li>
+                        <li>Click a cell twice to toggle between across/down</li>
+                        <li>Use <strong>Backspace</strong> to delete and move back</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="font-medium text-gray-900 mb-1">Tips:</p>
+                      <ul className="list-disc list-inside space-y-1 text-gray-700 ml-2">
+                        <li>Use hints sparingly for better learning</li>
+                        <li>Complete one word at a time for clarity</li>
+                        <li>Check your work before completing the puzzle</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
