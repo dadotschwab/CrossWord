@@ -231,7 +231,7 @@ export default function PuzzleView() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Crossword Grid - 50% width */}
           <div className="flex flex-col items-center justify-start">
-            <div className="bg-white rounded-lg shadow-md p-6 w-full" style={{ height: 'calc(100vh - 200px)' }}>
+            <div className="bg-white rounded-lg shadow-md p-6 w-full flex items-center justify-center" style={{ height: 'calc(100vh - 200px)' }}>
               <CrosswordGrid
                 puzzle={puzzle}
                 userGrid={userGrid}
@@ -243,17 +243,21 @@ export default function PuzzleView() {
 
           {/* Clues and Controls - 50% width */}
           <div className="relative flex flex-col gap-4" style={{ height: 'calc(100vh - 200px)' }}>
-            <PuzzleControls
-              hintsUsed={hintsUsed}
-              maxHints={MAX_HINTS_PER_PUZZLE}
-              onCheckSolution={handleCheckSolution}
-              onRevealHint={handleRevealHint}
-              canComplete={isGridComplete}
-              onComplete={handleCompletePuzzle}
-              onInfoClick={() => setIsInfoOpen(true)}
-            />
+            <div className={`transition-opacity duration-200 ${isInfoOpen ? 'opacity-0' : 'opacity-100'}`}>
+              <PuzzleControls
+                hintsUsed={hintsUsed}
+                maxHints={MAX_HINTS_PER_PUZZLE}
+                onCheckSolution={handleCheckSolution}
+                onRevealHint={handleRevealHint}
+                canComplete={isGridComplete}
+                onComplete={handleCompletePuzzle}
+                onInfoClick={() => setIsInfoOpen(true)}
+              />
+            </div>
 
-            <div className="flex-1 bg-white rounded-lg shadow-md p-6 overflow-y-auto">
+            <div className={`flex-1 bg-white rounded-lg shadow-md p-6 overflow-y-auto transition-opacity duration-200 ${
+              isInfoOpen ? 'opacity-0' : 'opacity-100'
+            }`}>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Clues</h2>
               <CluesList
                 words={puzzle.words}
