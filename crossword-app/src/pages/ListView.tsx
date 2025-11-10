@@ -118,41 +118,82 @@ export default function ListView() {
           </Card>
         ) : (
           <Card>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Word</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Definition</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {words.map((word, index) => (
-                    <tr key={word.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
-                      <td className="py-3 px-4 text-gray-700">{word.definition}</td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex justify-end">
-                          <DropdownMenu
-                            items={[
-                              {
-                                label: 'Edit',
-                                onClick: () => setEditingWord(word),
-                              },
-                              {
-                                label: 'Delete',
-                                onClick: () => handleDeleteWord(word.id),
-                                variant: 'danger',
-                              },
-                            ]}
-                          />
-                        </div>
-                      </td>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Word</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Definition</th>
+                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {words.filter((_, index) => index % 2 === 0).map((word, index) => (
+                      <tr key={word.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
+                        <td className="py-3 px-4 text-gray-700">{word.definition}</td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex justify-end">
+                            <DropdownMenu
+                              items={[
+                                {
+                                  label: 'Edit',
+                                  onClick: () => setEditingWord(word),
+                                },
+                                {
+                                  label: 'Delete',
+                                  onClick: () => handleDeleteWord(word.id),
+                                  variant: 'danger',
+                                },
+                              ]}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Right Column */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Word</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Definition</th>
+                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {words.filter((_, index) => index % 2 === 1).map((word, index) => (
+                      <tr key={word.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
+                        <td className="py-3 px-4 text-gray-700">{word.definition}</td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex justify-end">
+                            <DropdownMenu
+                              items={[
+                                {
+                                  label: 'Edit',
+                                  onClick: () => setEditingWord(word),
+                                },
+                                {
+                                  label: 'Delete',
+                                  onClick: () => handleDeleteWord(word.id),
+                                  variant: 'danger',
+                                },
+                              ]}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </Card>
         )}
