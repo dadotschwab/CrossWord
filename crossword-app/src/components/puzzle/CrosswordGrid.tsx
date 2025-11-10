@@ -81,6 +81,14 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
 
     if (wordsAtCell.length === 0) return;
 
+    // CRITICAL: If we're already typing a word and this cell is part of that word, stay on it!
+    // This prevents switching words during auto-advance at intersections
+    if (selectedWord && wordsAtCell.some(w => w.id === selectedWord.id)) {
+      // Just update the cell position, keep the same word
+      setSelectedCell({ row, col });
+      return;
+    }
+
     // If clicking on already selected cell of a word with multiple directions, toggle direction
     if (selectedCell && selectedCell.row === row && selectedCell.col === col && wordsAtCell.length > 1) {
       // Toggle to the other word at this position
