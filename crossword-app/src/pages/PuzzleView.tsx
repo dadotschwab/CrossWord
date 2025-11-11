@@ -19,7 +19,8 @@ export default function PuzzleView() {
   const [selectedWord, setSelectedWord] = useState<PlacedWord | null>(null);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [startTime] = useState(Date.now());
-  const [_errorCells, setErrorCells] = useState<Set<string>>(new Set());
+  const [errorCells, setErrorCells] = useState<Set<string>>(new Set());
+  const [correctWords, setCorrectWords] = useState<Set<string>>(new Set());
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const infoOverlayRef = useRef<HTMLDivElement>(null);
@@ -105,9 +106,12 @@ export default function PuzzleView() {
     if (!puzzle) return;
 
     const errors = new Set<string>();
+    const correct = new Set<string>();
 
     puzzle.words.forEach((word) => {
       const letters = word.word.split('');
+      let wordHasError = false;
+      let wordIsComplete = true;
 
       letters.forEach((letter, index) => {
         let row: number, col: number;
@@ -123,11 +127,21 @@ export default function PuzzleView() {
         const userLetter = userGrid[row][col];
         if (userLetter && userLetter !== letter) {
           errors.add(`${row},${col}`);
+          wordHasError = true;
+        }
+        if (!userLetter) {
+          wordIsComplete = false;
         }
       });
+
+      // Mark word as correct if it's complete and has no errors
+      if (wordIsComplete && !wordHasError) {
+        correct.add(word.id);
+      }
     });
 
     setErrorCells(errors);
+    setCorrectWords(correct);
 
     if (errors.size === 0 && isGridComplete) {
       alert('Perfect! All answers are correct! 🎉');
@@ -235,6 +249,7 @@ export default function PuzzleView() {
               <CrosswordGrid
                 puzzle={puzzle}
                 userGrid={userGrid}
+                errorCells={errorCells}
                 onCellChange={handleCellChange}
                 onWordSelect={setSelectedWord}
               />
@@ -262,6 +277,7 @@ export default function PuzzleView() {
               <CluesList
                 words={puzzle.words}
                 selectedWord={selectedWord}
+                correctWords={correctWords}
                 onClueClick={handleClueClick}
               />
             </div>

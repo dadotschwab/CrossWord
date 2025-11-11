@@ -8,6 +8,7 @@ interface CrosswordCellProps {
   isBlack: boolean;
   isSelected: boolean;
   isHighlighted: boolean;
+  isError: boolean;
   cellSize: number;
   onChange: (row: number, col: number, value: string) => void;
   onFocus: (row: number, col: number) => void;
@@ -22,6 +23,7 @@ export default function CrosswordCell({
   isBlack,
   isSelected,
   isHighlighted,
+  isError,
   cellSize,
   onChange,
   onFocus,
@@ -68,9 +70,10 @@ export default function CrosswordCell({
         className={`
           w-full h-full border text-center font-bold uppercase
           focus:outline-none focus:ring-2 focus:ring-primary-500
-          ${isSelected ? 'bg-primary-100 border-primary-500 ring-2 ring-primary-500' : ''}
-          ${isHighlighted && !isSelected ? 'bg-primary-50 border-primary-300' : ''}
-          ${!isSelected && !isHighlighted ? 'bg-white border-gray-300' : ''}
+          ${isError ? 'bg-red-100 border-red-500 text-red-700' : ''}
+          ${isSelected && !isError ? 'bg-primary-100 border-primary-500 ring-2 ring-primary-500' : ''}
+          ${isHighlighted && !isSelected && !isError ? 'bg-primary-50 border-primary-300' : ''}
+          ${!isSelected && !isHighlighted && !isError ? 'bg-white border-gray-300' : ''}
         `}
       />
     </div>

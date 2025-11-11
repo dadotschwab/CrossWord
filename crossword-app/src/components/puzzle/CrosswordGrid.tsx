@@ -5,11 +5,12 @@ import CrosswordCell from './CrosswordCell';
 interface CrosswordGridProps {
   puzzle: PuzzleGrid;
   userGrid: string[][];
+  errorCells: Set<string>;
   onCellChange: (row: number, col: number, value: string) => void;
   onWordSelect: (word: PlacedWord | null) => void;
 }
 
-export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSelect }: CrosswordGridProps) {
+export default function CrosswordGrid({ puzzle, userGrid, errorCells, onCellChange, onWordSelect }: CrosswordGridProps) {
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [selectedWord, setSelectedWord] = useState<PlacedWord | null>(null);
   const [highlightedCells, setHighlightedCells] = useState<Set<string>>(new Set());
@@ -242,6 +243,7 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
                 const isBlack = !findWordsAtCell(rowIndex, colIndex).length;
                 const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
                 const isHighlighted = highlightedCells.has(`${rowIndex},${colIndex}`);
+                const isError = errorCells.has(`${rowIndex},${colIndex}`);
                 const number = getCellNumber(rowIndex, colIndex);
 
                 return (
@@ -254,6 +256,7 @@ export default function CrosswordGrid({ puzzle, userGrid, onCellChange, onWordSe
                     isBlack={isBlack}
                     isSelected={isSelected}
                     isHighlighted={isHighlighted}
+                    isError={isError}
                     cellSize={cellSize}
                     onChange={handleCellChange}
                     onFocus={handleCellFocus}
