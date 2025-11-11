@@ -13,7 +13,8 @@ export default function ListView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [list, setList] = useState<List | null>(null);
   const [words, setWords] = useState<Word[]>([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  // Initialize modal state based on URL parameter for instant display
+  const [isAddModalOpen, setIsAddModalOpen] = useState(searchParams.get('add') === 'true');
   const [editingWord, setEditingWord] = useState<Word | null>(null);
 
   useEffect(() => {
@@ -28,10 +29,9 @@ export default function ListView() {
     }
   }, [listId, navigate]);
 
-  // Check for ?add=true parameter to auto-open add modal
+  // Clean up URL parameter after opening modal
   useEffect(() => {
     if (searchParams.get('add') === 'true') {
-      setIsAddModalOpen(true);
       // Remove the parameter from URL
       searchParams.delete('add');
       setSearchParams(searchParams, { replace: true });
