@@ -142,14 +142,6 @@ export default function PuzzleView() {
 
     setErrorCells(errors);
     setCorrectWords(correct);
-
-    if (errors.size === 0 && isGridComplete) {
-      alert('Perfect! All answers are correct! 🎉');
-    } else if (errors.size > 0) {
-      alert(`Found ${errors.size} error${errors.size !== 1 ? 's' : ''}. Incorrect cells are marked in red.`);
-    } else {
-      alert('Looking good so far! Keep going.');
-    }
   };
 
   const handleRevealHint = () => {
