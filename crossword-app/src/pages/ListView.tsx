@@ -16,6 +16,8 @@ export default function ListView() {
   // Initialize modal state based on URL parameter for instant display
   const [isAddModalOpen, setIsAddModalOpen] = useState(searchParams.get('add') === 'true');
   const [editingWord, setEditingWord] = useState<Word | null>(null);
+  // Delay content rendering if modal opens immediately
+  const [shouldRenderContent, setShouldRenderContent] = useState(searchParams.get('add') !== 'true');
 
   useEffect(() => {
     if (listId) {
@@ -37,6 +39,17 @@ export default function ListView() {
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  // Delay rendering content when modal opens on page load
+  useEffect(() => {
+    if (!shouldRenderContent) {
+      // Wait for modal animation to complete (200ms)
+      const timer = setTimeout(() => {
+        setShouldRenderContent(true);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRenderContent]);
 
   const loadWords = () => {
     if (listId) {
@@ -114,100 +127,102 @@ export default function ListView() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {words.length === 0 ? (
-          <Card className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No words yet</h3>
-            <p className="text-gray-600 mb-4">Add at least {MIN_WORDS_FOR_PUZZLE} words to generate a crossword puzzle</p>
-            <Button onClick={() => setIsAddModalOpen(true)}>
-              Add Your First Word
-            </Button>
-          </Card>
-        ) : (
-          <Card>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Word</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Definition</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {words.filter((_, index) => index % 2 === 0).map((word, index) => (
-                      <tr key={word.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                        <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
-                        <td className="py-3 px-4 text-gray-700">{word.definition}</td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex justify-end">
-                            <DropdownMenu
-                              items={[
-                                {
-                                  label: 'Edit',
-                                  onClick: () => setEditingWord(word),
-                                },
-                                {
-                                  label: 'Delete',
-                                  onClick: () => handleDeleteWord(word.id),
-                                  variant: 'danger',
-                                },
-                              ]}
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {shouldRenderContent ? (
+          words.length === 0 ? (
+            <Card className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
               </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No words yet</h3>
+              <p className="text-gray-600 mb-4">Add at least {MIN_WORDS_FOR_PUZZLE} words to generate a crossword puzzle</p>
+              <Button onClick={() => setIsAddModalOpen(true)}>
+                Add Your First Word
+              </Button>
+            </Card>
+          ) : (
+            <Card>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Word</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Definition</th>
+                        <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {words.filter((_, index) => index % 2 === 0).map((word, index) => (
+                        <tr key={word.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                          <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
+                          <td className="py-3 px-4 text-gray-700">{word.definition}</td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex justify-end">
+                              <DropdownMenu
+                                items={[
+                                  {
+                                    label: 'Edit',
+                                    onClick: () => setEditingWord(word),
+                                  },
+                                  {
+                                    label: 'Delete',
+                                    onClick: () => handleDeleteWord(word.id),
+                                    variant: 'danger',
+                                  },
+                                ]}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              {/* Right Column */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Word</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Definition</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {words.filter((_, index) => index % 2 === 1).map((word, index) => (
-                      <tr key={word.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                        <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
-                        <td className="py-3 px-4 text-gray-700">{word.definition}</td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex justify-end">
-                            <DropdownMenu
-                              items={[
-                                {
-                                  label: 'Edit',
-                                  onClick: () => setEditingWord(word),
-                                },
-                                {
-                                  label: 'Delete',
-                                  onClick: () => handleDeleteWord(word.id),
-                                  variant: 'danger',
-                                },
-                              ]}
-                            />
-                          </div>
-                        </td>
+                {/* Right Column */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Word</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Definition</th>
+                        <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {words.filter((_, index) => index % 2 === 1).map((word, index) => (
+                        <tr key={word.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                          <td className="py-3 px-4 font-medium text-gray-900">{word.word}</td>
+                          <td className="py-3 px-4 text-gray-700">{word.definition}</td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex justify-end">
+                              <DropdownMenu
+                                items={[
+                                  {
+                                    label: 'Edit',
+                                    onClick: () => setEditingWord(word),
+                                  },
+                                  {
+                                    label: 'Delete',
+                                    onClick: () => handleDeleteWord(word.id),
+                                    variant: 'danger',
+                                  },
+                                ]}
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          </Card>
-        )}
+            </Card>
+          )
+        ) : null}
       </main>
 
       {/* Add Word Modal */}
